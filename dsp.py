@@ -1,9 +1,11 @@
 import math
+import numpy as np
+
 
 '''
-    Follows the mathematical definition of the discrete Fourier transform.
+    Returns the Fourier transform of a discrete sequence, follows the mathematical definition
+    of the Discrete Fourier Transform.
 '''
-
 def dft(input):
     output = []
     for m in range(0, len(input)):
@@ -17,31 +19,28 @@ def dft(input):
         output.append(sum)
     return output 
 
-def twiddle(N, divisor, exp_mult):
-    exp = 2 * math.pi * (divisor/N) * exp_mult
-    return math.cos(exp) - 1.0j*math.sin(exp)
 
-
-def A(m, x):
-    N_div_2 = len(x) / 2 - 1
-    result = 0 + 0j
-    for n in range(0, N_div_2):
-        result += x[2*n] * (twiddle(2, len(x)/2, m * n))
-
-    return result
-
-def B(m, x):
-    N_div_2 = len(x) / 2 - 1
-    result = 0 + 0j
-    for n in range(0, N_div_2):
-        result += x[2*n + 1] * (2, twiddle(len(x)/2, m * n))
-
-    return result
-
-
-
-# Ensure the size of the input is a power of 2
+'''
+    Returns the Fourier transform of a discrete sequence using the radix-2 Fast Fourier Transform.
+    Requires an input size that is a power of 2.
+'''
 def fft(input):
-    output = []
-    N = len(input)
-    levels = math.log2(input)
+    if len(input) == 1:
+    # if the input size is 2, we return the trivial 2pt DFT
+        return input
+    
+    # otherwise, further divide the DFT using recursive calls
+    else:
+        N = len(input)
+
+        # Only solve for the first half of the input, the second half can he obtained from the first
+        m = np.arange(0, N//2)
+
+        # compute the twiddle factors for m = [0,..,N//2]
+        twiddle_factors = np.exp(-1j * 2 * np.pi * m * 1/N)
+
+        # Obtain the set of even and odd samples 
+        even = fft(input[0::2])
+        odd = fft(input[1::2])
+
+        return np.concatenate([even + (twiddle_factors * odd), even - (twiddle_factors * odd)])
